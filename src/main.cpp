@@ -2,7 +2,10 @@
 # include <glfw/glfw3.h>
 # include <iostream>
 # include "stb_image.h"
-#include <cmath>
+# include <cmath>
+# include <glm/glm.hpp>
+# include <glm/gtc/matrix_transform.hpp>
+# include <glm/gtc/type_ptr.hpp>
 #include "shader.h"
 using namespace std;
 
@@ -43,33 +46,7 @@ int main() {
         return -1;
     }
 
-
-    // // 创建顶点着色器
-    // GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    // glShaderSource(vertexShader, 1,  &vertexShaderSource, nullptr);
-    // glCompileShader(vertexShader);
-
-    // // 创建片段着色器
-    // GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    // glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
-    // glCompileShader(fragmentShader);
-
-    // // 链接着色器到着色器程序
-    // // 创建程序
-    // GLuint shaderProgram = glCreateProgram();
-    // // 挂载
-    // glAttachShader(shaderProgram, vertexShader);
-    // glAttachShader(shaderProgram, fragmentShader);
-    // // 链接
-    // glLinkProgram(shaderProgram);
-    // // 激活着色器
-    // glUseProgram(shaderProgram);
-    
-
-    // // 删除着色器
-    // glDeleteShader(vertexShader);
-    // glDeleteShader(fragmentShader);
-
+    // 创建我的着色器对象
     myShader myShader_0("C:/Users/27410/Desktop/LearnOpenGL/shaders/0_v.vs", "C:/Users/27410/Desktop/LearnOpenGL/shaders/0_f.fs");
 
 
@@ -120,7 +97,7 @@ int main() {
     
 
     // 配置纹理
-    stbi_set_flip_vertically_on_load(true);
+    stbi_set_flip_vertically_on_load(true);         // 翻转图片垂直方向的轴
     GLuint texture1, texture2;
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -170,10 +147,17 @@ int main() {
     glUniform1i(glGetUniformLocation(myShader_0.ID, "myTexture1"), 0);
     glUniform1i(glGetUniformLocation(myShader_0.ID, "myTexture2"), 1);
 
+    // 变换
+    // glm::mat4 trans;
+    // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0, 0, 1));
+    // trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0, 0, 1));
+    // trans = glm::scale(trans, glm::vec3(0.5, 0.5, 0.5));
 
+    // GLuint transformLoc = glGetUniformLocation(myShader_0.ID, "transform");
+    // glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
     // 循环渲染
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window))  
     {   
         // 输入
         processInput(window);
@@ -188,9 +172,18 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+
+        glm::mat4 trans;
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0, 0, 1));
+        
         // 激活着色器
         // glUseProgram(shaderProgram);
         myShader_0.use();
+
+        GLuint transformLoc = glGetUniformLocation(myShader_0.ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        
 
 
         // 更新uniform颜色
@@ -203,6 +196,15 @@ int main() {
         // 绑定vao
         glBindVertexArray(vao);
         // glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        float scaleAmount = static_cast<float>(sin(glfwGetTime()));
+        trans = glm::rotate(trans, -(float)glfwGetTime(), glm::vec3(0, 0, 1));
+        trans = glm::translate(trans, glm::vec3(-0.5f, 0.5f, 0.0f));
+        trans = glm::scale(trans, sin(scaleAmount)*glm::vec3(1, 1, 1));
+        
+
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // 交换缓冲，检查事件
