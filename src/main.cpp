@@ -51,18 +51,40 @@ int main() {
 
 
     // 设置顶点数据
-    GLfloat vertexs[] = {
-        0.5, 0.5, 0,       1, 0, 0,       1, 1,
-        0.5, -0.5, 0,       0, 1, 0,        1, 0,
-        -0.5, -0.5, 0,        0, 0, 1,      0, 0,
-        -0.5, 0.5, 0,       1, 1, 0,        0, 1
+    // GLfloat vertexs[] = {
+    //     0.5, 0.5, 0,       1, 0, 0,       1, 1,
+    //     0.5, -0.5, 0,       0, 1, 0,        1, 0,
+    //     -0.5, -0.5, 0,        0, 0, 1,      0, 0,
+    //     -0.5, 0.5, 0,       1, 1, 0,        0, 1
+    // };
+
+        GLfloat vertexs[] = {
+        0.5, 0.5, 0.5,       1, 0, 0,       1, 1,
+        0.5, -0.5, 0.5,       0, 1, 0,        1, 0,
+        -0.5, -0.5, 0.5,        0, 0, 1,      0, 0,
+        -0.5, 0.5, 0.5,       1, 1, 0,        0, 1,
+        0.5, 0.5, -0.5,       1, 0, 0,       0, 0,
+        0.5, -0.5, -0.5,       0, 1, 0,        0, 1,
+        -0.5, -0.5, -0.5,        0, 0, 1,      1, 1,
+        -0.5, 0.5, -0.5,       1, 1, 0,        1, 0
     };
+
 
 
     // 索引数组
     GLuint indicates[] = {
         0, 1, 2,
-        0, 2, 3
+        0, 2, 3,
+        0, 1, 5,
+        0, 4, 5,
+        4, 5, 6,
+        4, 6, 7,
+        2, 6, 7,
+        2, 3, 7,
+        0, 3, 7,
+        0, 4, 7,
+        1, 2, 6,
+        1, 5, 6
     };
 
     // 创建VAO，存属性配置
@@ -147,6 +169,18 @@ int main() {
     glUniform1i(glGetUniformLocation(myShader_0.ID, "myTexture1"), 0);
     glUniform1i(glGetUniformLocation(myShader_0.ID, "myTexture2"), 1);
 
+    // 坐标系
+    glm::mat4 model;
+    model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1, 0, 0));
+    glm::mat4 view;
+    view = glm::translate(view, glm::vec3(0, 0, -3));
+    glm::mat4 project;
+    project = glm::perspective(glm::radians(45.0f), 2000.0f/1500.0f, 0.1f, 100.0f);
+
+
+    // 启用深度测试
+    glEnable(GL_DEPTH_TEST);
+
     // 变换
     // glm::mat4 trans;
     // trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0, 0, 1));
@@ -164,7 +198,7 @@ int main() {
 
         // 设置清屏颜色
         glClearColor(0, 0, 0, 0.5);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -183,9 +217,17 @@ int main() {
 
         GLuint transformLoc = glGetUniformLocation(myShader_0.ID, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+        int modelLoc = glGetUniformLocation(myShader_0.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+        int viewLoc = glGetUniformLocation(myShader_0.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+        int projectLoc = glGetUniformLocation(myShader_0.ID, "project");
+        glUniformMatrix4fv(projectLoc, 1, GL_FALSE, glm::value_ptr(project));
+
         
-
-
         // 更新uniform颜色
         // float timeVal = glfwGetTime();
         // float colorVal = (sin(timeVal)/2) +0.5;
@@ -195,8 +237,8 @@ int main() {
 
         // 绑定vao
         glBindVertexArray(vao);
-        // glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         float scaleAmount = static_cast<float>(sin(glfwGetTime()));
         trans = glm::rotate(trans, -(float)glfwGetTime(), glm::vec3(0, 0, 1));
@@ -205,7 +247,7 @@ int main() {
         
 
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
         // 交换缓冲，检查事件
         glfwSwapBuffers(window);

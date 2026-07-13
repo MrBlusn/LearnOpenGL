@@ -5,8 +5,13 @@ layout (location = 2) in vec2 aTexCoor;
 out vec4 vertexColor;
 out vec2 texCoor;
 uniform mat4 transform;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 project;
+
 void main() {
-    gl_Position = transform * vec4(aPos, 1.0);
+    gl_Position = project * view * model * transform * vec4(aPos, 1.0);
     vertexColor = vec4(aColor, 1);
     texCoor = aTexCoor;
 }
